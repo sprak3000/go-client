@@ -57,6 +57,8 @@ func (c *client) Do(ctx context.Context, method string, slug string, headers htt
 		return glitch.NewDataError(err, ErrorRequestCreation, "Error creating request object")
 	}
 
+	req.Header = headers
+
 	if ctx != nil {
 		req = req.WithContext(ctx)
 	}
