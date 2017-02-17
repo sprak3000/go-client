@@ -8,6 +8,9 @@ services might move frequently.  If you have performance concerns about looking 
 
 ## Usage
 
+The below usage is a quick guide.  We recommend creating a service specific client that uses the base client under the covers to actually `Do` the request.  This will make it 
+easy to setup the client one time in the `main` of your service and pass it to your handlers as needed.
+
 ```go 
 finder := func(serviceName string, useTLS bool) (url.URL, error) {
     u, err := url.Parse("http://example.com/")
