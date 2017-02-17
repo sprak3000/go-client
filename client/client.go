@@ -42,7 +42,7 @@ type client struct {
 // NewBaseClient creates a new BaseClient
 func NewBaseClient(finder ServiceFinder, serviceName string, useTLS bool, timeout time.Duration) BaseClient {
 	c := &http.Client{Timeout: timeout}
-	result := &client{finder: finder, serviceName: serviceName, useTLS: useTLS, client: c}
+	return &client{finder: finder, serviceName: serviceName, useTLS: useTLS, client: c}
 }
 
 func (c *client) Do(ctx context.Context, method string, slug string, headers http.Header, body io.Reader, response interface{}) glitch.DataError {
