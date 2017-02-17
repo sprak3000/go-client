@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "OW3EGsqxewcIbnLwPCP3dz1aE7U=",
+			"path": "github.com/healthimation/go-glitch/glitch",
+			"revision": "28e9f04c119b9790b03f6679af8680f345a78897",
+			"revisionTime": "2017-02-14T18:38:35Z"
+		}
+	],
+	"rootPath": "github.com/healthimation/go-client"
+}
