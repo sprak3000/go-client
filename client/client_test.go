@@ -24,6 +24,7 @@ func TestUnit_Do(t *testing.T) {
 		ctx              context.Context
 		method           string
 		slug             string
+		query            url.Values
 		headers          http.Header
 		body             io.Reader
 		response         interface{}
@@ -32,7 +33,6 @@ func TestUnit_Do(t *testing.T) {
 	}
 
 	testServer := httptest.NewServer(http.HandlerFunc((func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("path: %s", r.URL.Path)
 		switch r.URL.Path {
 		case "/1":
 			fmt.Fprintf(w, `{"foo":"bar"}`)
@@ -90,6 +90,7 @@ func TestUnit_Do(t *testing.T) {
 			client:           NewBaseClient(finder, "foo", false, 10*time.Second),
 			method:           "POST",
 			slug:             "2",
+			query:            url.Values{"foo": []string{"bar"}},
 			body:             bytes.NewBuffer([]byte(`{"test":false}`)),
 			response:         new(map[string]string),
 			expectedResponse: &map[string]string{"foo": "baz"},
@@ -105,7 +106,7 @@ func TestUnit_Do(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := tc.client.Do(tc.ctx, tc.method, tc.slug, tc.headers, tc.body, tc.response)
+			err := tc.client.Do(tc.ctx, tc.method, tc.slug, tc.query, tc.headers, tc.body, tc.response)
 			if !reflect.DeepEqual(err, tc.expectedErr) {
 				t.Fatalf("Error actual (%v) did not match expected (%v)", err, tc.expectedErr)
 			}

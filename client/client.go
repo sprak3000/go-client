@@ -29,7 +29,7 @@ type ServiceFinder func(serviceName string, useTLS bool) (url.URL, error)
 
 // BaseClient can do requests
 type BaseClient interface {
-	Do(ctx context.Context, method string, slug string, headers http.Header, body io.Reader, response interface{}) glitch.DataError
+	Do(ctx context.Context, method string, slug string, query url.Values, headers http.Header, body io.Reader, response interface{}) glitch.DataError
 }
 
 type client struct {
@@ -45,12 +45,13 @@ func NewBaseClient(finder ServiceFinder, serviceName string, useTLS bool, timeou
 	return &client{finder: finder, serviceName: serviceName, useTLS: useTLS, client: c}
 }
 
-func (c *client) Do(ctx context.Context, method string, slug string, headers http.Header, body io.Reader, response interface{}) glitch.DataError {
+func (c *client) Do(ctx context.Context, method string, slug string, query url.Values, headers http.Header, body io.Reader, response interface{}) glitch.DataError {
 	u, err := c.finder(c.serviceName, c.useTLS)
 	if err != nil {
 		return glitch.NewDataError(err, ErrorCantFind, "Error finding service")
 	}
 	u.Path = slug
+	u.RawQuery = query.Encode()
 
 	req, err := http.NewRequest(method, u.String(), body)
 	if err != nil {
