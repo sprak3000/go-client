@@ -17,11 +17,12 @@ import (
 
 // Error codes
 const (
-	ErrorCantFind         = "CANT_FIND_SERVICE"
-	ErrorRequestCreation  = "CANT_CREATE_REQUEST"
-	ErrorRequestError     = "ERROR_MAKING_REQUEST"
-	ErrorDecodingError    = "ERROR_DECODING_ERROR"
-	ErrorDecodingResponse = "ERROR_DECODING_RESPONSE"
+	ErrorCantFind          = "CANT_FIND_SERVICE"
+	ErrorRequestCreation   = "CANT_CREATE_REQUEST"
+	ErrorRequestError      = "ERROR_MAKING_REQUEST"
+	ErrorDecodingError     = "ERROR_DECODING_ERROR"
+	ErrorDecodingResponse  = "ERROR_DECODING_RESPONSE"
+	ErrorMarshallingObject = "ERROR_MARSHALLING_OBJECT"
 )
 
 // ServiceFinder can find a service's base URL
