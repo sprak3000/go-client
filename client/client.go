@@ -59,11 +59,6 @@ func NewBaseClient(finder ServiceFinder, serviceName string, useTLS bool, timeou
 }
 
 func (c *client) Do(ctx context.Context, method string, slug string, query url.Values, headers http.Header, body io.Reader, response interface{}) glitch.DataError {
-	// span := c.tracer.GetSpan(ctx).NewChild(fmt.Sprintf("(%s) %s", method, slug))
-	// defer func() {
-	// 	span.Finish()
-	// }()
-
 	status, ret, err := c.MakeRequest(ctx, method, slug, query, headers, body)
 	if err != nil {
 		return err
