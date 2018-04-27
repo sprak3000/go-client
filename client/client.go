@@ -49,10 +49,14 @@ type client struct {
 
 // NewBaseClient creates a new BaseClient
 func NewBaseClient(finder ServiceFinder, serviceName string, useTLS bool, timeout time.Duration, tracer trace.Tracer) BaseClient {
-	c := &http.Client{Timeout: timeout}
 	t := tracer
 	if t == nil {
 		t = trace.NewNullTracer()
+	}
+
+	c := &http.Client{
+		Timeout:   timeout,
+		Transport: trace.NewTransport(t, http.DefaultTransport),
 	}
 
 	return &client{finder: finder, serviceName: serviceName, useTLS: useTLS, client: c, tracer: t}
@@ -84,8 +88,6 @@ func (c *client) Do(ctx context.Context, method string, slug string, query url.V
 }
 
 func (c *client) MakeRequest(ctx context.Context, method string, slug string, query url.Values, headers http.Header, body io.Reader) (int, []byte, glitch.DataError) {
-	c.client.Transport = c.tracer.NewRoundTripperWithContext(ctx, c.client.Transport)
-
 	u, err := c.finder(c.serviceName, c.useTLS)
 	if err != nil {
 		return 0, nil, glitch.NewDataError(err, ErrorCantFind, "Error finding service")
