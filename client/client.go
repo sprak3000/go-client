@@ -12,6 +12,7 @@ import (
 
 	"time"
 
+	trace "github.com/away-team/go-tracer/tracer"
 	"github.com/healthimation/go-glitch/glitch"
 )
 
@@ -43,12 +44,22 @@ type client struct {
 	useTLS      bool
 	serviceName string
 	client      *http.Client
+	tracer      trace.Tracer
 }
 
 // NewBaseClient creates a new BaseClient
-func NewBaseClient(finder ServiceFinder, serviceName string, useTLS bool, timeout time.Duration) BaseClient {
-	c := &http.Client{Timeout: timeout}
-	return &client{finder: finder, serviceName: serviceName, useTLS: useTLS, client: c}
+func NewBaseClient(finder ServiceFinder, serviceName string, useTLS bool, timeout time.Duration, tracer trace.Tracer) BaseClient {
+	t := tracer
+	if t == nil {
+		t = trace.NewNullTracer()
+	}
+
+	c := &http.Client{
+		Timeout:   timeout,
+		Transport: trace.NewTransport(t, http.DefaultTransport),
+	}
+
+	return &client{finder: finder, serviceName: serviceName, useTLS: useTLS, client: c, tracer: t}
 }
 
 func (c *client) Do(ctx context.Context, method string, slug string, query url.Values, headers http.Header, body io.Reader, response interface{}) glitch.DataError {
