@@ -70,7 +70,7 @@ func TestUnit_Do(t *testing.T) {
 	testcases := []testcase{
 		{
 			name:             "GET",
-			client:           NewBaseClient(finder, "foo", false, 10*time.Second),
+			client:           NewBaseClient(finder, "foo", false, 10*time.Second, nil),
 			method:           "GET",
 			slug:             "1",
 			response:         new(map[string]string),
@@ -78,7 +78,7 @@ func TestUnit_Do(t *testing.T) {
 		},
 		{
 			name:             "POST",
-			client:           NewBaseClient(finder, "foo", false, 10*time.Second),
+			client:           NewBaseClient(finder, "foo", false, 10*time.Second, nil),
 			method:           "POST",
 			slug:             "2",
 			body:             bytes.NewBuffer([]byte(`{"test":true}`)),
@@ -87,7 +87,7 @@ func TestUnit_Do(t *testing.T) {
 		},
 		{
 			name:             "POST2",
-			client:           NewBaseClient(finder, "foo", false, 10*time.Second),
+			client:           NewBaseClient(finder, "foo", false, 10*time.Second, nil),
 			method:           "POST",
 			slug:             "2",
 			query:            url.Values{"foo": []string{"bar"}},
@@ -97,7 +97,7 @@ func TestUnit_Do(t *testing.T) {
 		},
 		{
 			name:        "error",
-			client:      NewBaseClient(finder, "foo", false, 10*time.Second),
+			client:      NewBaseClient(finder, "foo", false, 10*time.Second, nil),
 			method:      "GET",
 			slug:        "3",
 			expectedErr: glitch.FromHTTPProblem(glitch.HTTPProblem{Code: "FOOBAR", Status: 500, Detail: "test error"}, "Error from GET to foo - 3"),
