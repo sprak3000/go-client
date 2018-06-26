@@ -27,7 +27,7 @@ type dataError struct {
 }
 
 func (d *dataError) Error() string {
-	return fmt.Sprintf("Code: [%s] Message: [%s] Inner error: [%s]", d.code, d.msg, d.inner.Error())
+	return fmt.Sprintf("Code: [%s] Message: [%s] Inner error: [%s]", d.code, d.msg, d.inner)
 }
 
 func (d *dataError) Inner() error {

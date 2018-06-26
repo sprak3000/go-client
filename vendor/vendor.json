@@ -3,10 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "OW3EGsqxewcIbnLwPCP3dz1aE7U=",
+			"checksumSHA1": "KUS5CW5VwMoV92L4CCc9PvKKC4Y=",
 			"path": "github.com/healthimation/go-glitch/glitch",
-			"revision": "28e9f04c119b9790b03f6679af8680f345a78897",
-			"revisionTime": "2017-02-14T18:38:35Z"
+			"revision": "c1136cd4a72e65801db800149cc00b99d9b104a1",
+			"revisionTime": "2017-07-14T15:15:22Z"
 		}
 	],
 	"rootPath": "github.com/healthimation/go-client"
