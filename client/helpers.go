@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/healthimation/go-glitch/glitch"
+	"github.com/sprak3000/go-glitch/glitch"
 )
 
-// ObjectToJSONReader will v to a io.Reader of the JSON representation of v
+// ObjectToJSONReader will provide an io.Reader of the JSON representation of v
 func ObjectToJSONReader(v interface{}) (io.Reader, glitch.DataError) {
 	if by, ok := v.([]byte); ok {
 		return bytes.NewBuffer(by), nil
@@ -21,6 +21,7 @@ func ObjectToJSONReader(v interface{}) (io.Reader, glitch.DataError) {
 	return bytes.NewBuffer(by), nil
 }
 
+// PrefixRoute ensures a prefix is applied to the routes being called
 func PrefixRoute(serviceName string, pathPrefix string, appendServiceNameToRoute bool, route string) string {
 	if !appendServiceNameToRoute && pathPrefix == "" {
 		return normalizePathPart(route)

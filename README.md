@@ -1,35 +1,91 @@
 # go-client
-This package works in concert with [go-glitch](https://github.com/healthimation/go-glitch) to encourage code based error handling during inter-service
-communication.  If a service returns a [problem](https://github.com/healthimation/go-glitch/blob/master/glitch/http-problem.go) detail or http problem with a `code` field
-this client will facilitate calling that service and parsing the response into a `glitch.DataError` or a successful response.
 
-**Note** that this package looks up the service using the provided finder every time a request is made.  This allows it to work in more ephemeral environments where 
-services might move frequently.  If you have performance concerns about looking up service urls we suggest implementing a short cache in the `ServiceFinder` function.
+[![Maintainability](https://api.codeclimate.com/v1/badges/61b8abbabfa223658774/maintainability)](https://codeclimate.com/github/sprak3000/go-client/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/61b8abbabfa223658774/test_coverage)](https://codeclimate.com/github/sprak3000/go-client/test_coverage)
+
+This package works in concert with [go-glitch](https://github.com/HqOapp/go-glitch) to encourage code based error
+handling during inter-service communication.  If a service returns a
+[problem](https://github.com/HqOapp/go-glitch/blob/master/glitch/http-problem.go) detail or http problem with a `code`
+field this client will facilitate calling that service and parsing the response into a `glitch.DataError` or a
+successful response.
+
+**Note** that this package looks up the service using the provided finder every time a request is made. This allows it
+to work in more ephemeral environments where services might move frequently. If you have performance concerns about
+looking up service urls we suggest implementing a short cache in the `ServiceFinder` function.
+
+Interested in making this library better? Read through our [development guide](docs/development.md).
 
 ## Usage
 
-The below usage is a quick guide.  We recommend creating a service specific client that uses the base client under the covers to actually `Do` the request.  This will make it 
-easy to setup the client one time in the `main` of your service and pass it to your handlers as needed.
+### Working with Services Returning the glitch.HTTPProblem Format
 
-```go 
+Use this pattern if your service returns error conditions in this `glitch.HTTPProblem` format:
+
+```json
+{
+  "type": "error type",
+  "title": "title",
+  "status": 400,
+  "detail": "More information about the error...",
+  "instance": "More information about the error...",
+  "code": "ERROR_CODE"
+}
+```
+
+First, create a service finder closure. This will be used by the client to create the base service URL used
+for requests.
+
+```go
 finder := func(serviceName string, useTLS bool) (url.URL, error) {
     u, err := url.Parse("http://example.com/")
     return *u, err
 }
-bc := NewBaseClient(finder, "example-service", false, 10*time.Second)
+```
 
+Create a base client to use to make calls by providing the finder closure, the name of the service, a boolean indicating
+if TLS is to be used when connecting to the service, the amount of time before a call times out, and an optional HTTP
+transport layer (`http.DefaultTransport` is used by default).
+
+```go
+bc := NewBaseClient(finder, "example-service", false, 10*time.Second)
+```
+
+You can now use the `Do()` method on the client to make a call to a service and process the result.
+
+```go
 type user struct {
-    ID int `json:"id"`
+    ID   int `json:"id"`
     Name string `json:"name"`
 }
 u := user{}
-err := tc.client.Do(r.Context(), "GET", "v1/user/1", nil, nil, &u)
+```
+
+This sets up the expected structure a successful response from our API endpoint. We pass it via pointer to `Do()` along
+with the HTTP method to use, the path to the endpoint, any query parameters, any HTTP headers, and any body data for
+`POST` requests.
+
+```go
+headers := http.Header{}
+queryParams := url.Values{}
+bodyReader, objErr := ObjectToJSONReader(bodyDataStruct)
+if objErr != nil {
+    // handle error
+}
+
+err := tc.client.Do(r.Context(), "GET", "v1/user/1", queryParams, headers, bodyReader, &u)
+```
+
+If the API call succeeds, `Do()` will populate your response variable `u`. Otherwise, `err` will be populated with the
+details from the response, allowing you to process it as needed.
+
+```go
+// Handle any errors
 if err != nil {
     switch err.Code() {
     case "USER_NOT_FOUND":
         w.WriteHeader(http.StatusNotFound)
         // ...
-    case "PERMISSION_DENIED": 
+    case "PERMISSION_DENIED":
         w.WriteHeader(http.StatusForbidden)
         // ...
     case "USER_SETTING_PRIVATE"
@@ -37,5 +93,42 @@ if err != nil {
         // ...
     }
 }
+
+// Do things with your response
+name := u.Name
 ```
 
+### Working with Services Returning a non-glitch.HTTPProblem Format
+
+If the service returns a different error format, you need to use `MakeRequest()`. It is called nearly identical to
+`Do()`, except it omits the need to pass in a variable to hold the response from your service call.
+
+```go
+headers := http.Header{}
+queryParams := url.Values{}
+bodyReader, objErr := ObjectToJSONReader(bodyDataStruct)
+if objErr != nil {
+    // handle error
+}
+
+statusCode, respBytes, err := tc.client.MakeRequest(r.Context(), "GET", "v1/user/1", queryParams, headers, bodyReader)
+```
+
+`MakeRequest()` returns the HTTP status code from the response, the response payload as a byte slice, and a
+`glitch.DataError` for any errors encountered trying to make the request or parsing the response. You will need to
+handle converting the response byte slice (`respBytes`) yourself.
+
+```go
+type user struct {
+    ID   int `json:"id"`
+    Name string `json:"name"`
+}
+u := user{}
+
+uErr := json.Unmarshal(respBytes, &u)
+if uErr != nil {
+    // handle error
+}
+
+name := u.Name
+```

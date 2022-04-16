@@ -2,17 +2,15 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-
-	"encoding/json"
-
 	"time"
 
-	"github.com/healthimation/go-glitch/glitch"
+	"github.com/sprak3000/go-glitch/glitch"
 )
 
 // Error codes
@@ -28,13 +26,11 @@ const (
 // ServiceFinder can find a service's base URL
 type ServiceFinder func(serviceName string, useTLS bool) (url.URL, error)
 
+//go:generate go run -mod=mod github.com/golang/mock/mockgen -package clientmock -destination=./clientmock/client-mock.go -source=../client/client.go -build_flags=-mod=mod
+
 // BaseClient can do requests
 type BaseClient interface {
-	// Do does the request and parses the body into the response provider if in the 2xx range, otherwise parses it into a glitch.DataError
 	Do(ctx context.Context, method string, slug string, query url.Values, headers http.Header, body io.Reader, response interface{}) glitch.DataError
-
-	// MakeRequest does the request and returns the status, body, and any error
-	// This should be used only if the api doesn't return glitch.DataErrors
 	MakeRequest(ctx context.Context, method string, slug string, query url.Values, headers http.Header, body io.Reader) (int, []byte, glitch.DataError)
 }
 
@@ -47,7 +43,6 @@ type client struct {
 
 // NewBaseClient creates a new BaseClient
 func NewBaseClient(finder ServiceFinder, serviceName string, useTLS bool, timeout time.Duration, rt http.RoundTripper) BaseClient {
-
 	if rt == nil {
 		rt = http.DefaultTransport
 	}
@@ -59,6 +54,7 @@ func NewBaseClient(finder ServiceFinder, serviceName string, useTLS bool, timeou
 	return &client{finder: finder, serviceName: serviceName, useTLS: useTLS, client: c}
 }
 
+// Do parses the request body into the response provider if in the 2xx range; otherwise, parses it into a glitch.DataError
 func (c *client) Do(ctx context.Context, method string, slug string, query url.Values, headers http.Header, body io.Reader, response interface{}) glitch.DataError {
 	status, ret, err := c.MakeRequest(ctx, method, slug, query, headers, body)
 	if err != nil {
@@ -84,6 +80,8 @@ func (c *client) Do(ctx context.Context, method string, slug string, query url.V
 	return nil
 }
 
+// MakeRequest does the request and returns the status, body, and any error.
+// This should be used only if the API doesn't return errors in the glitch.DataError format.
 func (c *client) MakeRequest(ctx context.Context, method string, slug string, query url.Values, headers http.Header, body io.Reader) (int, []byte, glitch.DataError) {
 	u, err := c.finder(c.serviceName, c.useTLS)
 	if err != nil {

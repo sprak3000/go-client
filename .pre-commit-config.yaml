@@ -1,0 +1,24 @@
+default_stages: [commit, manual]
+
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-merge-conflict
+
+  # ==========================================================================
+  # Golang Pre-Commit Hooks | https://github.com/tekwizely/pre-commit-golang
+
+  - repo: https://github.com/tekwizely/pre-commit-golang
+    rev: v0.8.3
+    hooks:
+      - id: go-imports
+      - id: go-vet-mod
+      - id: go-revive
+        args: ['-config', '.revive.toml', '--']
+        verbose: true
