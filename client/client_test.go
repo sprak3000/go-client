@@ -142,7 +142,7 @@ func TestUnit_Do(t *testing.T) {
 				u, err := url.Parse(testServer.URL)
 				return *u, err
 			},
-			expectedErr: glitch.NewDataError(nil, "ERROR_MAKING_REQUEST", "Could not decode error response"),
+			expectedErr: glitch.NewDataError(nil, ErrorDecodingError, "Could not decode error response"),
 			validate: func(t *testing.T, expectedResponse, actualResponse interface{}, expectedErr, actualErr glitch.DataError) {
 				require.Error(t, actualErr)
 				require.Equal(t, expectedErr.Code(), actualErr.Code())
@@ -160,7 +160,7 @@ func TestUnit_Do(t *testing.T) {
 				u, err := url.Parse(testServer.URL)
 				return *u, err
 			},
-			expectedErr: glitch.NewDataError(nil, "ERROR_DECODING_RESPONSE", "Could not decode response"),
+			expectedErr: glitch.NewDataError(nil, ErrorDecodingResponse, "Could not decode response"),
 			validate: func(t *testing.T, expectedResponse, actualResponse interface{}, expectedErr, actualErr glitch.DataError) {
 				require.Error(t, actualErr)
 				require.Equal(t, expectedErr.Code(), actualErr.Code())
@@ -178,7 +178,7 @@ func TestUnit_Do(t *testing.T) {
 				u, _ := url.Parse(testServer.URL)
 				return *u, errors.New("error finding service")
 			},
-			expectedErr: glitch.NewDataError(errors.New("error finding service"), "CANT_FIND_SERVICE", "Error finding service"),
+			expectedErr: glitch.NewDataError(errors.New("error finding service"), ErrorCantFind, "Error finding service"),
 			validate: func(t *testing.T, expectedResponse, actualResponse interface{}, expectedErr, actualErr glitch.DataError) {
 				require.Error(t, actualErr)
 				require.Equal(t, expectedErr, actualErr)
