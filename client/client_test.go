@@ -14,25 +14,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/healthimation/go-glitch/glitch"
+	"github.com/sprak3000/go-glitch/glitch"
 )
 
 func TestUnit_Do(t *testing.T) {
-	type testcase struct {
-		name             string
-		client           BaseClient
-		ctx              context.Context
-		method           string
-		slug             string
-		query            url.Values
-		headers          http.Header
-		body             io.Reader
-		response         interface{}
-		expectedResponse interface{}
-		expectedErr      error
-	}
-
-	testServer := httptest.NewServer(http.HandlerFunc((func(w http.ResponseWriter, r *http.Request) {
+	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/1":
 			fmt.Fprintf(w, `{"foo":"bar"}`)
@@ -59,7 +45,7 @@ func TestUnit_Do(t *testing.T) {
 			w.WriteHeader(http.StatusInternalServerError)
 			fmt.Fprintf(w, string(by))
 		}
-	})))
+	}))
 	defer testServer.Close()
 
 	finder := func(serviceName string, useTLS bool) (url.URL, error) {
@@ -67,17 +53,26 @@ func TestUnit_Do(t *testing.T) {
 		return *u, err
 	}
 
-	testcases := []testcase{
-		{
-			name:             "GET",
+	tests := map[string]struct {
+		client           BaseClient
+		ctx              context.Context
+		method           string
+		slug             string
+		query            url.Values
+		headers          http.Header
+		body             io.Reader
+		response         interface{}
+		expectedResponse interface{}
+		expectedErr      error
+	}{
+		"GET": {
 			client:           NewBaseClient(finder, "foo", false, 10*time.Second, nil),
 			method:           "GET",
 			slug:             "1",
 			response:         new(map[string]string),
 			expectedResponse: &map[string]string{"foo": "bar"},
 		},
-		{
-			name:             "POST",
+		"POST": {
 			client:           NewBaseClient(finder, "foo", false, 10*time.Second, nil),
 			method:           "POST",
 			slug:             "2",
@@ -85,8 +80,7 @@ func TestUnit_Do(t *testing.T) {
 			response:         new(map[string]string),
 			expectedResponse: &map[string]string{"foo": "bar"},
 		},
-		{
-			name:             "POST2",
+		"POST2": {
 			client:           NewBaseClient(finder, "foo", false, 10*time.Second, nil),
 			method:           "POST",
 			slug:             "2",
@@ -95,8 +89,7 @@ func TestUnit_Do(t *testing.T) {
 			response:         new(map[string]string),
 			expectedResponse: &map[string]string{"foo": "baz"},
 		},
-		{
-			name:        "error",
+		"error": {
 			client:      NewBaseClient(finder, "foo", false, 10*time.Second, nil),
 			method:      "GET",
 			slug:        "3",
@@ -104,8 +97,8 @@ func TestUnit_Do(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
 			err := tc.client.Do(tc.ctx, tc.method, tc.slug, tc.query, tc.headers, tc.body, tc.response)
 			if !reflect.DeepEqual(err, tc.expectedErr) {
 				t.Fatalf("Error actual (%v) did not match expected (%v)", err, tc.expectedErr)
@@ -115,5 +108,4 @@ func TestUnit_Do(t *testing.T) {
 			}
 		})
 	}
-
 }

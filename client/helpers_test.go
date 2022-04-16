@@ -1,17 +1,14 @@
 package client
 
-import "testing"
-import "reflect"
-import "io/ioutil"
+import (
+	"io/ioutil"
+	"reflect"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestUnit_ObjectToJSONReader(t *testing.T) {
-	type testcase struct {
-		name        string
-		input       interface{}
-		expected    []byte
-		expectedErr error
-	}
-
 	type teststruct struct {
 		Foo string `json:"foo"`
 		Baz int    `json:"baz"`
@@ -22,21 +19,23 @@ func TestUnit_ObjectToJSONReader(t *testing.T) {
 		C teststruct `json:"c"`
 	}
 
-	testcases := []testcase{
-		{
-			name:     "bytes",
+	tests := map[string]struct {
+		input       interface{}
+		expected    []byte
+		expectedErr error
+	}{
+		"bytes": {
 			input:    []byte(`{"foo":"bar","baz":123}`),
 			expected: []byte(`{"foo":"bar","baz":123}`),
 		},
-		{
-			name:     "struct",
+		"struct": {
 			input:    teststruct2{A: "bar", B: 123, C: teststruct{Foo: "bar2", Baz: 456}},
 			expected: []byte(`{"a":"bar","b":123,"c":{"foo":"bar2","baz":456}}`),
 		},
 	}
 
-	for _, tc := range testcases {
-		t.Run(tc.name, func(t *testing.T) {
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
 			ret, err := ObjectToJSONReader(tc.input)
 			if !reflect.DeepEqual(err, tc.expectedErr) {
 				t.Fatalf("Error actual (%v) did not match expected (%v)", err, tc.expectedErr)
@@ -48,5 +47,55 @@ func TestUnit_ObjectToJSONReader(t *testing.T) {
 			}
 		})
 	}
+}
 
+func TestUnit_PrefixRoute(t *testing.T) {
+	tests := map[string]struct {
+		serviceName              string
+		pathPrefix               string
+		appendServiceNameToRoute bool
+		route                    string
+		expectedRoute            string
+	}{
+		"do not append service name, empty prefix": {
+			serviceName:              "testservice",
+			appendServiceNameToRoute: false,
+			route:                    "/foo/bar",
+			expectedRoute:            "/foo/bar",
+		},
+		"append service name, empty prefix": {
+			serviceName:              "testservice",
+			appendServiceNameToRoute: true,
+			route:                    "/foo/bar",
+			expectedRoute:            "/testservice/foo/bar",
+		},
+		"do not append service name, has prefix": {
+			serviceName:              "testservice",
+			pathPrefix:               "v1",
+			appendServiceNameToRoute: false,
+			route:                    "/foo/bar",
+			expectedRoute:            "/v1/foo/bar",
+		},
+		"append service name, has prefix": {
+			serviceName:              "testservice",
+			pathPrefix:               "v1",
+			appendServiceNameToRoute: true,
+			route:                    "/foo/bar",
+			expectedRoute:            "/v1/testservice/foo/bar",
+		},
+		"append service name, has prefix, trailing slash in route": {
+			serviceName:              "testservice",
+			pathPrefix:               "v1",
+			appendServiceNameToRoute: true,
+			route:                    "/foo/bar/",
+			expectedRoute:            "/v1/testservice/foo/bar",
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			r := PrefixRoute(tc.serviceName, tc.pathPrefix, tc.appendServiceNameToRoute, tc.route)
+			require.Equal(t, tc.expectedRoute, r)
+		})
+	}
 }

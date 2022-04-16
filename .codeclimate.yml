@@ -1,0 +1,76 @@
+version: '2'
+
+checks:
+  argument-count:
+    enabled: true
+    config:
+      threshold: 4
+  complex-logic:
+    enabled: true
+    config:
+      threshold: 4
+  file-lines:
+    enabled: true
+    config:
+      threshold: 250
+  method-complexity:
+    enabled: true
+    config:
+      threshold: 5
+  method-count:
+    enabled: true
+    config:
+      threshold: 20
+  method-lines:
+    enabled: true
+    config:
+      threshold: 25
+  nested-control-flow:
+    enabled: true
+    config:
+      threshold: 4
+  return-statements:
+    enabled: true
+    config:
+      threshold: 4
+  similar-code:
+    enabled: false
+    config:
+      threshold: 1 #language-specific defaults. overrides affect all languages.
+  identical-code:
+    enabled: false
+    config:
+      threshold: 1 #language-specific defaults. overrides affect all languages.
+
+plugins:
+  gofmt:
+    enabled: true
+  govet:
+    enabled: true
+  golint:
+    enabled: true
+  fixme:
+    enabled: true
+  editorconfig:
+    enabled: true
+
+exclude_patterns:
+  ##### Start of Default exclusions patterns, ref url - https://docs.codeclimate.com/docs/excluding-files-and-folders
+  - config/
+  - db/
+  - migrations/
+  - dist/
+  - features/
+  - '**/node_modules/'
+  - script/
+  - '**/spec/'
+  - '**/test/'
+  - '**/tests/'
+  - Tests/
+  - '**/vendor/'
+  - '**/*_test.go'
+  - '**/*.d.ts'
+  ##### End of Default exclusion patterns #####
+  - docs/
+  - '**/*mock*.go'
+  - .github
