@@ -2,10 +2,11 @@ github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/golang/mock v1.6.0 h1:ErTB+efbowRARo13NNdxyJji2egdxLGQhRaY+DUumQc=
 github.com/golang/mock v1.6.0/go.mod h1:p6yTPP+5HYm5mzsMV8JkE6ZKdX+/wYM6Hr+LicevLPs=
+github.com/lib/pq v1.10.5/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/sprak3000/go-glitch v0.0.0-20170714151522-c1136cd4a72e h1:HjZawPGJ8T8736jeOGVn9I98Hy/qgKOOlGNSV/8cOLA=
-github.com/sprak3000/go-glitch v0.0.0-20170714151522-c1136cd4a72e/go.mod h1:AnVgMehzzQZ3tM72E460d6e4AbSa+d5DVTTgQCUmy1g=
+github.com/sprak3000/go-glitch v1.0.1 h1:fI5HjMmib3jq/9p/ccL1d+CtdP20Xc7QUTlNUpty5GI=
+github.com/sprak3000/go-glitch v1.0.1/go.mod h1:gAghf5TnJBpx+SwVPviNhUD7qeeqBy8hB1W7V+z/wrU=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMTY=
 github.com/stretchr/testify v1.7.1/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=

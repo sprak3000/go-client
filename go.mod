@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/golang/mock v1.6.0
-	github.com/sprak3000/go-glitch v0.0.0-20170714151522-c1136cd4a72e
+	github.com/sprak3000/go-glitch v1.0.1
 	github.com/stretchr/testify v1.7.1
 )
 
