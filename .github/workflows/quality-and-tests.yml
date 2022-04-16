@@ -32,4 +32,4 @@ jobs:
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CODE_CLIMATE_TEST_REPORTER_ID }}
         with:
-          prefix: go-glitch
+          prefix: go-client
