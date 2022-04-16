@@ -1,11 +1,13 @@
 package client
 
 import (
+	"io"
 	"io/ioutil"
-	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"github.com/sprak3000/go-glitch/glitch"
 )
 
 func TestUnit_ObjectToJSONReader(t *testing.T) {
@@ -22,29 +24,43 @@ func TestUnit_ObjectToJSONReader(t *testing.T) {
 	tests := map[string]struct {
 		input       interface{}
 		expected    []byte
-		expectedErr error
+		expectedErr glitch.DataError
+		validate    func(t *testing.T, expected []byte, actual io.Reader, expectedErr, actualErr glitch.DataError)
 	}{
-		"bytes": {
+		"base path- bytes": {
 			input:    []byte(`{"foo":"bar","baz":123}`),
 			expected: []byte(`{"foo":"bar","baz":123}`),
+			validate: func(t *testing.T, expected []byte, actual io.Reader, expectedErr, actualErr glitch.DataError) {
+				require.NoError(t, actualErr)
+				by, iErr := ioutil.ReadAll(actual)
+				require.NoError(t, iErr)
+				require.Equal(t, expected, by)
+			},
 		},
-		"struct": {
+		"base path- struct": {
 			input:    teststruct2{A: "bar", B: 123, C: teststruct{Foo: "bar2", Baz: 456}},
 			expected: []byte(`{"a":"bar","b":123,"c":{"foo":"bar2","baz":456}}`),
+			validate: func(t *testing.T, expected []byte, actual io.Reader, expectedErr, actualErr glitch.DataError) {
+				require.NoError(t, actualErr)
+				by, iErr := ioutil.ReadAll(actual)
+				require.NoError(t, iErr)
+				require.Equal(t, expected, by)
+			},
+		},
+		"exceptional path- cannot marshal JSON": {
+			input:       make(chan int),
+			expectedErr: glitch.NewDataError(nil, "ERROR_MARSHALLING_OBJECT", "Error marshalling object to json"),
+			validate: func(t *testing.T, expected []byte, actual io.Reader, expectedErr, actualErr glitch.DataError) {
+				require.Error(t, actualErr)
+				require.Equal(t, expectedErr.Code(), actualErr.Code())
+			},
 		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			ret, err := ObjectToJSONReader(tc.input)
-			if !reflect.DeepEqual(err, tc.expectedErr) {
-				t.Fatalf("Error actual (%v) did not match expected (%v)", err, tc.expectedErr)
-			}
-
-			by, _ := ioutil.ReadAll(ret)
-			if !reflect.DeepEqual(by, tc.expected) {
-				t.Fatalf("Actual (%s) did not match expected (%s)", by, tc.expected)
-			}
+			tc.validate(t, tc.expected, ret, tc.expectedErr, err)
 		})
 	}
 }
