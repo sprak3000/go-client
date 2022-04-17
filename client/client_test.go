@@ -263,7 +263,7 @@ func TestUnit_MakeRequest(t *testing.T) {
 				u, err := url.Parse(testServer.URL)
 				return *u, err
 			},
-			expectedErr: glitch.NewDataError(errors.New(`net/http: invalid method ":"`), ErrorRequestError, "Could not make the request"),
+			expectedErr: glitch.NewDataError(errors.New(`net/http: invalid method ":"`), ErrorRequestCreation, "Error creating request object"),
 			validate: func(t *testing.T, expectedStatusCode, actualStatusCode int, expectedResponse interface{}, actualResponse []byte, expectedErr, actualErr glitch.DataError) {
 				require.Error(t, actualErr)
 				require.Equal(t, expectedErr, actualErr)
