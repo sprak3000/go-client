@@ -1,4 +1,4 @@
-module go-client
+module github.com/sprak3000/go-client
 
 go 1.17
 
