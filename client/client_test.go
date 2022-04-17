@@ -198,3 +198,118 @@ func TestUnit_Do(t *testing.T) {
 		})
 	}
 }
+
+func TestUnit_MakeRequest(t *testing.T) {
+	var (
+		testServer *httptest.Server
+	)
+
+	tests := map[string]struct {
+		method             string
+		slug               string
+		query              url.Values
+		headers            http.Header
+		body               io.Reader
+		requestHandler     http.HandlerFunc
+		finder             func(serviceName string, useTLS bool) (url.URL, error)
+		expectedStatusCode int
+		expectedResponse   interface{}
+		expectedErr        glitch.DataError
+		validate           func(t *testing.T, expectedStatusCode, actualStatusCode int, expectedResponse interface{}, actualResponse []byte, expectedErr, actualErr glitch.DataError)
+	}{
+
+		"base path- GET": {
+			method: "GET",
+			slug:   "1",
+			requestHandler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusCreated)
+				_, _ = fmt.Fprintf(w, `{"foo":"bar"}`)
+			},
+			finder: func(serviceName string, useTLS bool) (url.URL, error) {
+				u, err := url.Parse(testServer.URL)
+				return *u, err
+			},
+			expectedStatusCode: http.StatusCreated,
+			expectedResponse:   &map[string]string{"foo": "bar"},
+			validate: func(t *testing.T, expectedStatusCode, actualStatusCode int, expectedResponse interface{}, actualResponse []byte, expectedErr, actualErr glitch.DataError) {
+				require.NoError(t, actualErr)
+				require.Equal(t, expectedStatusCode, actualStatusCode)
+
+				resp := new(map[string]string)
+				err := json.Unmarshal(actualResponse, &resp)
+				require.NoError(t, err)
+				require.Equal(t, expectedResponse, resp)
+			},
+		},
+		"exceptional path- cannot find service": {
+			method:         "GET",
+			slug:           "3",
+			requestHandler: func(w http.ResponseWriter, r *http.Request) {},
+			finder: func(serviceName string, useTLS bool) (url.URL, error) {
+				u, _ := url.Parse(testServer.URL)
+				return *u, errors.New("error finding service")
+			},
+			expectedErr: glitch.NewDataError(errors.New("error finding service"), ErrorCantFind, "Error finding service"),
+			validate: func(t *testing.T, expectedStatusCode, actualStatusCode int, expectedResponse interface{}, actualResponse []byte, expectedErr, actualErr glitch.DataError) {
+				require.Error(t, actualErr)
+				require.Equal(t, expectedErr, actualErr)
+			},
+		},
+		"exceptional path- cannot create request object": {
+			method:         ":",
+			slug:           "3",
+			requestHandler: func(w http.ResponseWriter, r *http.Request) {},
+			finder: func(serviceName string, useTLS bool) (url.URL, error) {
+				u, err := url.Parse(testServer.URL)
+				return *u, err
+			},
+			expectedErr: glitch.NewDataError(errors.New(`net/http: invalid method ":"`), ErrorRequestCreation, "Error creating request object"),
+			validate: func(t *testing.T, expectedStatusCode, actualStatusCode int, expectedResponse interface{}, actualResponse []byte, expectedErr, actualErr glitch.DataError) {
+				require.Error(t, actualErr)
+				require.Equal(t, expectedErr, actualErr)
+			},
+		},
+		"exceptional path- could not make the request": {
+			method:         "GET",
+			slug:           "3",
+			requestHandler: func(w http.ResponseWriter, r *http.Request) {},
+			finder: func(serviceName string, useTLS bool) (url.URL, error) {
+				u, err := url.Parse("")
+				return *u, err
+			},
+			expectedErr: glitch.NewDataError(nil, ErrorRequestError, "Could not make the request"),
+			validate: func(t *testing.T, expectedStatusCode, actualStatusCode int, expectedResponse interface{}, actualResponse []byte, expectedErr, actualErr glitch.DataError) {
+				require.Error(t, actualErr)
+				require.Equal(t, expectedErr.Code(), actualErr.Code())
+			},
+		},
+		"exceptional path- cannot read response body": {
+			method: "GET",
+			slug:   "3",
+			requestHandler: func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-Length", "1")
+			},
+			finder: func(serviceName string, useTLS bool) (url.URL, error) {
+				u, err := url.Parse(testServer.URL)
+				return *u, err
+			},
+			expectedErr: glitch.NewDataError(errors.New("unexpected EOF"), ErrorDecodingResponse, "Could not read response body"),
+			validate: func(t *testing.T, expectedStatusCode, actualStatusCode int, expectedResponse interface{}, actualResponse []byte, expectedErr, actualErr glitch.DataError) {
+				require.Error(t, actualErr)
+				require.Equal(t, expectedErr, actualErr)
+			},
+		},
+	}
+
+	for name, tc := range tests {
+		t.Run(name, func(t *testing.T) {
+			testServer = httptest.NewServer(tc.requestHandler)
+
+			defer testServer.Close()
+
+			client := NewBaseClient(tc.finder, "foo", false, 10*time.Second, nil)
+			statusCode, respBytes, err := client.MakeRequest(context.Background(), tc.method, tc.slug, tc.query, tc.headers, tc.body)
+			tc.validate(t, tc.expectedStatusCode, statusCode, tc.expectedResponse, respBytes, tc.expectedErr, err)
+		})
+	}
+}
