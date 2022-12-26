@@ -1,3 +1,4 @@
+// Package client provides functionality to interact with other services
 package client
 
 import (

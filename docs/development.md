@@ -27,6 +27,7 @@ code.
 
 
 ## Continuous Integration
+
 This project uses [GitHub Actions](https://github.com/sprak3000/go-glitch/actions) for build and continuous integration.
 
 ## Code Quality
