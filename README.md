@@ -1,15 +1,16 @@
 # go-client
 
+[![Code Quality & Tests](https://github.com/sprak3000/go-client/actions/workflows/quality-and-tests.yml/badge.svg)](https://github.com/sprak3000/go-client/actions/workflows/quality-and-tests.yml)
 [![Maintainability](https://api.codeclimate.com/v1/badges/61b8abbabfa223658774/maintainability)](https://codeclimate.com/github/sprak3000/go-client/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/61b8abbabfa223658774/test_coverage)](https://codeclimate.com/github/sprak3000/go-client/test_coverage)
 
 This package works in concert with [go-glitch](https://github.com/HqOapp/go-glitch) to encourage code based error
 handling during inter-service communication.  If a service returns a
-[problem](https://github.com/HqOapp/go-glitch/blob/master/glitch/http-problem.go) detail or http problem with a `code`
-field this client will facilitate calling that service and parsing the response into a `glitch.DataError` or a
+[problem](https://github.com/HqOapp/go-glitch/blob/master/glitch/http-problem.go) detail or HTTP problem with a `code`
+field, this client will facilitate calling that service and parsing the response into a `glitch.DataError` or a
 successful response.
 
-**Note** that this package looks up the service using the provided finder every time a request is made. This allows it
+**NOTE:** that this package looks up the service using the provided finder every time a request is made. This allows it
 to work in more ephemeral environments where services might move frequently. If you have performance concerns about
 looking up service urls we suggest implementing a short cache in the `ServiceFinder` function.
 
@@ -17,9 +18,10 @@ Interested in making this library better? Read through our [development guide](d
 
 ## Usage
 
-### Working with Services Returning the glitch.HTTPProblem Format
+### Working with services returning the glitch.HTTPProblem (RFC 7807) format
 
-Use this pattern if your service returns error conditions in this `glitch.HTTPProblem` format:
+Use this pattern if your service returns error conditions in the `glitch.HTTPProblem` format
+([RFC 7807](https://datatracker.ietf.org/doc/rfc7807)):
 
 ```json
 {
@@ -37,7 +39,18 @@ for requests.
 
 ```go
 finder := func(serviceName string, useTLS bool) (url.URL, error) {
-    u, err := url.Parse("http://example.com/")
+	var u *url.URL
+	var err error
+
+	switch serviceName {
+	case "example-service":
+	    u, err = url.Parse("https://example.com/")
+	case "foo-service":
+        u, err := url.Parse("https://foo.com/")
+	default:
+		return nil, glitch.NewDataError(nil, ErrorCantFind, "unknown service")
+	}
+
     return *u, err
 }
 ```
@@ -50,19 +63,20 @@ transport layer (`http.DefaultTransport` is used by default).
 bc := NewBaseClient(finder, "example-service", false, 10*time.Second)
 ```
 
-You can now use the `Do()` method on the client to make a call to a service and process the result.
+You can now use the `Do()` method on the client to make a call to a service and process the result. As an example,
+a service returns user data on a particular API endpoint. We define a type to contain the data from the response and
+create a variable of that type.
 
 ```go
 type user struct {
-    ID   int `json:"id"`
+    ID   int    `json:"id"`
     Name string `json:"name"`
 }
 u := user{}
 ```
 
-This sets up the expected structure a successful response from our API endpoint. We pass it via pointer to `Do()` along
-with the HTTP method to use, the path to the endpoint, any query parameters, any HTTP headers, and any body data for
-`POST` requests.
+We pass our variable via pointer to `Do()` along with the HTTP method to use, the path to the endpoint, query
+parameters, HTTP headers, and body data for `POST` requests.
 
 ```go
 headers := http.Header{}
@@ -75,7 +89,7 @@ if objErr != nil {
 err := tc.client.Do(r.Context(), "GET", "v1/user/1", queryParams, headers, bodyReader, &u)
 ```
 
-If the API call succeeds, `Do()` will populate your response variable `u`. Otherwise, `err` will be populated with the
+If the API call succeeds, `Do()` will populate the response variable `u`. Otherwise, `err` will be populated with the
 details from the response, allowing you to process it as needed.
 
 ```go
@@ -98,10 +112,10 @@ if err != nil {
 name := u.Name
 ```
 
-### Working with Services Returning a non-glitch.HTTPProblem Format
+### Working with services returning a non-glitch.HTTPProblem (RFC 7807) format
 
-If the service returns a different error format, you need to use `MakeRequest()`. It is called nearly identical to
-`Do()`, except it omits the need to pass in a variable to hold the response from your service call.
+If the service returns a different error format, use `MakeRequest()` to make the service call. It is called nearly
+identical to `Do()`, except it omits passing in a variable to hold the response from your service call.
 
 ```go
 headers := http.Header{}

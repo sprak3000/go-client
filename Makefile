@@ -44,7 +44,7 @@ brew-deps: ## Install tools via Homebrew
 .PHONY: setup-asdf
 setup-asdf: ## Install Go via asdf
 	@echo ">>>> Installing asdf plugins"
-	@asdf plugin add golang
+	-@asdf plugin add golang
 	@echo ">>>> Installing Go via asdf"
 	@asdf install
 
@@ -56,7 +56,7 @@ install-goimports: ## Install goimports
 .PHONY: install-gotestsum
 install-gotestsum: ## Install gotestsum
 	@echo ">>>> Installing gotestsum"
-	@go get gotest.tools/gotestsum
+	@go install gotest.tools/gotestsum@latest
 
 .PHONY: asdf-reshim
 asdf-reshim: ## Reshim asdf
