@@ -4,7 +4,7 @@
 [![Maintainability](https://api.codeclimate.com/v1/badges/61b8abbabfa223658774/maintainability)](https://codeclimate.com/github/sprak3000/go-client/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/61b8abbabfa223658774/test_coverage)](https://codeclimate.com/github/sprak3000/go-client/test_coverage)
 
-This package works in concert with [go-glitch](https://github.com/HqOapp/go-glitch) to encourage code based error
+This package works in concert with [go-glitch](https://github.com/sprak3000/go-glitch) to encourage code based error
 handling during inter-service communication.  If a service returns a
 [problem](https://github.com/HqOapp/go-glitch/blob/master/glitch/http-problem.go) detail or HTTP problem with a `code`
 field, this client will facilitate calling that service and parsing the response into a `glitch.DataError` or a
